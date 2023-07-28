@@ -137,7 +137,7 @@ class Universe:
         self.Neptune = Planet(self, 'Neptune', mass=1.024e26, radius=self.law.R_e,
                               position=vctr(0, 4498e9),
                               velcity=vctr(0, 0),
-                              color=(0, 0, 128))
+                              color=(65, 255, 128))
         V = v_by_2_bodys(self.Neptune, self.Solar)[0]
         self.Neptune.velocity.update(V)
         self.add_celestial_body(self.Neptune)

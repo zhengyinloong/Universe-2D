@@ -40,12 +40,14 @@ class Body:
         pass
 
     def draw_infos(self):
-        self.universe.draw_text(f'{self.name:6s} position: {self.pos}', self.universe.next_info_pos,
+        self.universe.draw_text(f'{self.name:10s} position: {self.pos}', self.universe.next_info_pos,
                                 text_color=self.color)
-        self.universe.draw_text(f'{"":6s} velocity: {self.velocity}', self.universe.next_info_pos,
+        self.universe.draw_text(f'{"":10s} velocity: {self.velocity}{vctr(0, 0).angle_to(self.velocity)}',
+                                self.universe.next_info_pos,
                                 text_color=self.color)
         self.universe.draw_text(self.name, self.draw_pos + (self.radius, 0),
                                 text_color=self.color)
+
     @staticmethod
     def colect_body_density(body):
         volume = 4 * math.pi * body.radius ** 3 / 3
