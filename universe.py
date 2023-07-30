@@ -33,10 +33,10 @@ class Universe:
 
         self.Solar.mass = self.law.Mass_Solar
         self.Earth.mass = self.law.Mass_Earth
-        self.Moon.mass = self.law.Mass_Moon*10
+        self.Moon.mass = self.law.Mass_Moon * 10
 
         self.Earth.pos.update(self.law.R_e2s, 0)
-        self.Moon.pos.update(self.law.R_e2s+self.law.R_m2e*10, 0)
+        self.Moon.pos.update(self.law.R_e2s + self.law.R_m2e * 10, 0)
 
         vgms, vgsm = self.law.circle_velocity_of_2_bodies(self.Moon, self.Solar)
         vges, vgse = self.law.circle_velocity_of_2_bodies(self.Earth, self.Solar)
@@ -140,9 +140,9 @@ class Universe:
             self.add_body(self.asteroid)
             angle += 360 / asteroid_number * rdm0_1()
 
-        self.Comet = Satellite(self, f'Comet', mass=1,radius=1,
-                                     position=self.Jupiter.pos.rotate(90),
-                                     velcity=vctr(0, 0))
+        self.Comet = Satellite(self, f'Comet', mass=1, radius=1,
+                               position=self.Jupiter.pos.rotate(90),
+                               velcity=vctr(0, 0))
         V = vctr(self.law.circle_velocity_of_2_bodies(self.Comet, self.Solar)[0]).rotate(60)
         self.Comet.velocity.update(V)
         self.add_body(self.Comet)
@@ -152,8 +152,9 @@ class Universe:
         self.Moon.velocity.update(self.Earth.velocity + self.law.circle_velocity_of_2_bodies(self.Moon, self.Earth)[0])
         # self.add_body(self.Moon)
 
-        self.law.time_scale = 3600*24*365
+        self.law.time_scale = 3600 * 24 * 365
         self.time_unit = 'year'
+        self.font_size = 10
 
     def earth_system(self):
 
@@ -207,12 +208,11 @@ class Universe:
 
     def draw(self):
         self.screen.fill('black')
-        [body.draw(is_draw_track=True,track_num=200) for body in self.body_list]
+        [body.draw(is_draw_track=True, track_num=200) for body in self.body_list]
         self.draw_time(self.time_unit)
         self.draw_center()
         self.draw_relative_scaling()
-        # self.draw_infos()
-
+        self.draw_infos()
 
         self.next_info_pos.update(vctr(0, 0))
 
@@ -241,7 +241,7 @@ class Universe:
             text += str(f'{self.time / (1000 * 60 * 60 * 24 * 365):.3f}')
         else:
             text = '(second)'
-            text += str(f'{self.time / (1000 ):.3f}')
+            text += str(f'{self.time / (1000):.3f}')
         text = 'time' + text
         self.draw_text(text, self.next_info_pos)
 
