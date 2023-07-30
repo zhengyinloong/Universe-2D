@@ -3,7 +3,6 @@
 # zhengyinloong
 # 2023/07/25 12:48
 
-from settings import *
 from imports import *
 
 
@@ -15,59 +14,45 @@ class Universe:
         self.settings = Settings(self)
 
         # spawn bodys
-        # self.add_bodys()
+        # self.add_system()
 
         # Special systems
         self.solar_system(asteroid_number=6)
-        self.law.time_scale = 1e6
         # self.double_star_system()
         # self.earth_system()
 
-    def add_bodys(self):
-        # self.Solar = Star(self,name='Solar',mass=self.law.Mass_Solar,position=vctr(self.law.R_e2s,0))
-        # self.add_celestial_body(self.Solar)
-        # for n in range(self.body_number):
-        #     B = random.choices(self.body_types, self.weights)[0]
-        #     body = B(self,position=vctr(0,0))
-        #     body.mass = rdm0_1() * self.law.Mass_Solar
-        #     body.pos.update(vctr(rdm0_1(), rdm0_1()) * self.law.R_e2s * 2)
-        #
-        #     while body.pos in [bd.pos for bd in self.body_list]:
-        #         body.pos.update(vctr(rdm0_1()+1, rdm0_1()+1) * self.law.R_e2s * 2)
-        #     body.velocity.update(cle.v_by_2_bodys(body, self.Solar)[0])
-        #     # velcity = cle.v_by_2_bodys(self.)
-        #     if B == Star:
-        #         body.mass = self.law.Mass_Solar
-        #         # velcity = vctr(0, 0)
-        #     body.name = body.id+f''
-        #     self.add_celestial_body(body)
-        # Sa = Satellite(self,mass=self.law.Mass_Moon, position=vctr(0, 0))
-        # As = Asteroid(self, mass=1e5,position=vctr(rdm0_1()*self.law.R_m2e, 0))
-        # self.law.pos_scale = 1e-6
-        # Sa.velocity.update(cle.v_by_2_bodys(Sa, As)[0])
-        # As.velocity.update(cle.v_by_2_bodys(As, Sa)[0])
-        # self.add_celestial_body(Sa)
-        # self.add_celestial_body(As)
+    def add_system(self):
 
-        self.Earth = Planet(self, 'Earth', mass=self.law.Mass_Earth, radius=self.law.R_e,
-                            position=vctr(0, 0),
-                            velcity=vctr(0, 0))
-        self.Moon = Satellite(self, 'Moon', mass=self.law.Mass_Moon, radius=self.law.R_m,
-                              position=vctr(self.law.R_m2e * 2, 0),
-                              velcity=vctr(0, 0))
-        # self.Moon2 = Satellite(self, 'Moon2', mass=self.law.Mass_Moon, radius=self.law.R_m,
-        #                        position=vctr(0, self.law.R_m2e),
-        #                        velcity=vctr(0, 0))
+        self.Solar = Star(self, 'Solar', radius=self.law.R_s,
+                          position=vctr(0, 0), velcity=vctr(0, 0))
 
-        V1, V2 = v_by_2_bodys(self.Earth, self.Moon)
-        self.Earth.velocity.update(V1)
-        self.Moon.velocity.update(V2)
-        # self.Moon2.pos.update(self.law.Light_second/6, 0)
-        # V1, V2 = v_by_2_bodys(self.Earth, self.Moon)
-        # self.Moon2.velocity.update(-2 * V2)
-        self.add_celestial_body(self.Earth)
-        self.add_celestial_body(self.Moon)
-        # self.add_celestial_body(self.Moon2)
+        self.Earth = Planet(self, 'Earth', radius=self.law.R_e,
+                            position=vctr(0, 0), velcity=vctr(0, 0))
+        self.Moon = Satellite(self, 'Moon', radius=self.law.R_m,
+                              position=vctr(0, 0), velcity=vctr(0, 0))
+
+        self.Solar.mass = self.law.Mass_Solar
+        self.Earth.mass = self.law.Mass_Earth
+        self.Moon.mass = self.law.Mass_Moon*10
+
+        self.Earth.pos.update(self.law.R_e2s, 0)
+        self.Moon.pos.update(self.law.R_e2s+self.law.R_m2e*10, 0)
+
+        vgms, vgsm = self.law.circle_velocity_of_2_bodies(self.Moon, self.Solar)
+        vges, vgse = self.law.circle_velocity_of_2_bodies(self.Earth, self.Solar)
+        vgme, vgem = self.law.circle_velocity_of_2_bodies(self.Moon, self.Earth)
+        # self.Solar.velocity.update(vgse + vgsm)
+        self.Earth.velocity.update(vges + vgem)
+        self.Moon.velocity.update(vgms + vgme)
+        print(vgms, vges)
+
+        self.add_body(self.Solar)
+        self.add_body(self.Earth)
+        self.add_body(self.Moon)
+
+        self.time_unit = 'day'
+        self.law.time_scale = 1 * 3600
+        self.law.pos_scale = 1e-10
 
     def solar_system(self, asteroid_number=10):
         """
@@ -77,70 +62,70 @@ class Universe:
         self.Solar = Star(self, 'Solar', mass=self.law.Mass_Solar, radius=self.law.R_s,
                           position=vctr(0, 0),
                           velcity=vctr(0, 0))
-        self.add_celestial_body(self.Solar)
+        self.add_body(self.Solar)
 
         self.Earth = Planet(self, 'Earth', mass=self.law.Mass_Earth, radius=self.law.R_e,
                             position=vctr(0, self.law.R_e2s),
                             velcity=vctr(self.law.V_e, 0))
-        V, V2 = v_by_2_bodys(self.Earth, self.Solar)
+        V, V2 = self.law.circle_velocity_of_2_bodies(self.Earth, self.Solar)
         self.Earth.velocity.update(V)
-        self.add_celestial_body(self.Earth)
+        self.add_body(self.Earth)
 
         self.Mercury = Planet(self, 'Mercury', mass=3.285e23, radius=self.law.R_e,
                               position=vctr(0, 57.91e9),
                               velcity=vctr(0, 0),
                               color=(169, 169, 169))
-        V, V2 = v_by_2_bodys(self.Mercury, self.Solar)
+        V, V2 = self.law.circle_velocity_of_2_bodies(self.Mercury, self.Solar)
         self.Mercury.velocity.update(V)
-        self.add_celestial_body(self.Mercury)
+        self.add_body(self.Mercury)
 
         self.Venus = Planet(self, 'Venus', mass=4.867e24, radius=self.law.R_e,
                             position=vctr(0, 108.2e9),
                             velcity=vctr(0, 0),
                             color='purple')
-        V, V2 = v_by_2_bodys(self.Venus, self.Solar)
-        self.Venus.velocity.update(-V)
-        self.add_celestial_body(self.Venus)
+        V, V2 = self.law.circle_velocity_of_2_bodies(self.Venus, self.Solar)
+        self.Venus.velocity.update(V)
+        self.add_body(self.Venus)
 
         self.Mars = Planet(self, 'Mars', mass=6.39e23, radius=self.law.R_e,
                            position=vctr(0, 227.9e9),
                            velcity=vctr(0, 0),
                            color=(255, 69, 0))
-        V, V2 = v_by_2_bodys(self.Mars, self.Solar)
+        V, V2 = self.law.circle_velocity_of_2_bodies(self.Mars, self.Solar)
         self.Mars.velocity.update(V)
-        self.add_celestial_body(self.Mars)
+        self.add_body(self.Mars)
 
         self.Jupiter = Planet(self, 'Jupiter', mass=1.898e27, radius=self.law.R_e,
                               position=vctr(0, 778.6e9),
                               velcity=vctr(0, 0),
                               color=(255, 140, 0))
-        V = v_by_2_bodys(self.Jupiter, self.Solar)[0]
+        V = self.law.circle_velocity_of_2_bodies(self.Jupiter, self.Solar)[0]
         self.Jupiter.velocity.update(V)
-        self.add_celestial_body(self.Jupiter)
+        self.add_body(self.Jupiter)
 
         self.Saturn = Planet(self, 'Saturn', mass=5.683e26, radius=self.law.R_e,
                              position=vctr(0, 1427e9),
                              velcity=vctr(0, 0),
                              color=(210, 180, 140))
-        V = v_by_2_bodys(self.Saturn, self.Solar)[0]
+        V = self.law.circle_velocity_of_2_bodies(self.Saturn, self.Solar)[0]
         self.Saturn.velocity.update(V)
-        self.add_celestial_body(self.Saturn)
+        self.add_body(self.Saturn)
 
         self.Uranus = Planet(self, 'Uranus', mass=8.681e25, radius=self.law.R_e,
                              position=vctr(0, 2871e9),
                              velcity=vctr(0, 0),
                              color=(0, 255, 255))
-        V = v_by_2_bodys(self.Uranus, self.Solar)[0]
+        V = self.law.circle_velocity_of_2_bodies(self.Uranus, self.Solar)[0]
         self.Uranus.velocity.update(V)
-        self.add_celestial_body(self.Uranus)
+        self.add_body(self.Uranus)
 
         self.Neptune = Planet(self, 'Neptune', mass=1.024e26, radius=self.law.R_e,
                               position=vctr(0, 4498e9),
                               velcity=vctr(0, 0),
                               color=(65, 255, 128))
-        V = v_by_2_bodys(self.Neptune, self.Solar)[0]
+        V = self.law.circle_velocity_of_2_bodies(self.Neptune, self.Solar)[0]
         self.Neptune.velocity.update(V)
-        self.add_celestial_body(self.Neptune)
+        self.add_body(self.Neptune)
 
         angle = 0
         for n in range(asteroid_number):
@@ -150,15 +135,25 @@ class Universe:
                                      velcity=vctr(0, 0))
             pos = vctr(self.asteroid.pos.rotate(angle))
             self.asteroid.pos.update(pos)
-            V = vctr(v_by_2_bodys(self.asteroid, self.Solar)[0])
+            V = vctr(self.law.circle_velocity_of_2_bodies(self.asteroid, self.Solar)[0])
             self.asteroid.velocity.update(V)
-            self.add_celestial_body(self.asteroid)
+            self.add_body(self.asteroid)
             angle += 360 / asteroid_number * rdm0_1()
-        # self.Moon = Satellite(self, 'Moon', mass=self.law.Mass_Moon, radius=self.law.R_m,
-        #                       position=vctr(self.law.R_m2e, self.law.R_e2s),
-        #                       velcity=vctr(0, 0))
-        # self.add_celestial_body(self.Moon)
-        # self.add_celestial_body(self.Moon)
+
+        self.Comet = Satellite(self, f'Comet', mass=1,radius=1,
+                                     position=self.Jupiter.pos.rotate(90),
+                                     velcity=vctr(0, 0))
+        V = vctr(self.law.circle_velocity_of_2_bodies(self.Comet, self.Solar)[0]).rotate(60)
+        self.Comet.velocity.update(V)
+        self.add_body(self.Comet)
+        self.Moon = Satellite(self, 'Moon', mass=self.law.Mass_Moon, radius=self.law.R_m,
+                              position=self.Earth.pos + vctr(self.law.R_m2e, 0),
+                              velcity=vctr(0, 0))
+        self.Moon.velocity.update(self.Earth.velocity + self.law.circle_velocity_of_2_bodies(self.Moon, self.Earth)[0])
+        # self.add_body(self.Moon)
+
+        self.law.time_scale = 3600*24*365
+        self.time_unit = 'year'
 
     def earth_system(self):
 
@@ -169,31 +164,30 @@ class Universe:
                               position=vctr(0, self.law.R_m2e),
                               velcity=vctr(0, 0))
 
-        V1, V2 = v_by_2_bodys(self.Earth, self.Moon)
+        V1, V2 = self.law.circle_velocity_of_2_bodies(self.Earth, self.Moon)
         self.Earth.velocity.update(V1)
         self.Moon.velocity.update(V2)
-        self.add_celestial_body(self.Earth)
-        self.Moon.pos.update(self.Moon.pos.rotate(90))
-        self.add_celestial_body(self.Moon)
+        self.add_body(self.Earth)
+        self.add_body(self.Moon)
 
     def double_star_system(self):
         self.star1 = Star(self, 'star1', mass=self.law.Mass_Solar, radius=self.law.R_s,
-                          position=vctr(-self.law.R_e2s * 10, 0),
+                          position=vctr(-self.law.R_e2s / 2, 0),
                           velcity=vctr(0, 0))
         # self.Earth = Planet(self, 'Earth', mass=self.law.Mass_Earth, radius=self.law.R_e,
         #                     position=vctr(0, self.law.R_e2s),
         #                     velcity=vctr(self.law.V_e, 0))
         self.star2 = Star(self, 'star2', mass=self.law.Mass_Solar, radius=self.law.R_s,
-                          position=vctr(self.law.R_e2s * 10, 0),
+                          position=vctr(self.law.R_e2s / 2, 0),
                           velcity=vctr(0, 0))
-        V1, V2 = v_by_2_bodys(self.star1, self.star2)
+        V1, V2 = self.law.circle_velocity_of_2_bodies(self.star1, self.star2)
         self.star1.velocity.update(V1)
         self.star2.velocity.update(V2)
-        self.add_celestial_body(self.star1)
-        self.add_celestial_body(self.star2)
+        self.add_body(self.star1)
+        self.add_body(self.star2)
         self.earth_system()
 
-    def add_celestial_body(self, body: Body):
+    def add_body(self, body: Body):
         self.body_list.append(body)
 
     def run(self):
@@ -213,17 +207,20 @@ class Universe:
 
     def draw(self):
         self.screen.fill('black')
-        [cele.draw(is_track=True) for cele in self.body_list]
-        self.draw_infos()
-
-    def draw_infos(self):
+        [body.draw(is_draw_track=True,track_num=200) for body in self.body_list]
         self.draw_time(self.time_unit)
         self.draw_center()
         self.draw_relative_scaling()
+        # self.draw_infos()
+
+
+        self.next_info_pos.update(vctr(0, 0))
+
+    def draw_infos(self):
+
         for i, body in enumerate(self.body_list):
             if type(body) != Asteroid:
                 body.draw_infos()
-        self.next_info_pos.update(vctr(0, 0))
 
     def draw_relative_scaling(self):
         self.draw_text(f'{"distence scale":15s}: {self.scale_by_mouse_ball * 100:4.1f} %', self.next_info_pos)
@@ -231,20 +228,20 @@ class Universe:
     def draw_time(self, d='second'):
         text = f'({d})'
         if d == 'second':
-            text += str(f'{self.time / 1000 :.6f}')
+            text += str(f'{self.time / 1000 :.3f}')
         elif d == 'minute':
-            text += str(f'{self.time / (1000 * 60):.6f}')
+            text += str(f'{self.time / (1000 * 60):.3f}')
         elif d == 'hour':
-            text += str(f'{self.time / (1000 * 60 * 60):.6f}')
+            text += str(f'{self.time / (1000 * 60 * 60):.3f}')
         elif d == 'day':
-            text += str(f'{self.time / (1000 * 60 * 60 * 24):.6f}')
+            text += str(f'{self.time / (1000 * 60 * 60 * 24):.3f}')
         elif d == 'month':
-            text += str(f'{self.time / (1000 * 60 * 60 * 24 * 30):.6f}')
+            text += str(f'{self.time / (1000 * 60 * 60 * 24 * 30):.3f}')
         elif d == 'year':
-            text += str(f'{self.time / (1000 * 60 * 60 * 24 * 365):.6f}')
+            text += str(f'{self.time / (1000 * 60 * 60 * 24 * 365):.3f}')
         else:
             text = '(second)'
-            text += str(f'{self.time / (1000 * 60 * 60 * 24 * 365):.6f}')
+            text += str(f'{self.time / (1000 ):.3f}')
         text = 'time' + text
         self.draw_text(text, self.next_info_pos)
 

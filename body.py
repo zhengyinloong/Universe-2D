@@ -21,39 +21,63 @@ class Body:
         self.a = vctr(0, 0)
         self.R = 0
         self.center = vctr(0, 0)
-        self.density = self.colect_body_density(self)
         self.velocity = velcity
         self.pos = position
         self.next_vel = self.velocity
         self.next_pos = self.pos
         self.dists_to = {}
         self.color = color
+        self.track_list = []
 
-    def draw(self, is_track):
+    def draw(self, is_draw_track, track_num=-1):
         self.draw_pos = self.pos * self.law.pos_scale + self.universe.center
+        # self.draw_radius = self.radius*self.law.pos_scale*self.universe.scale_by_mouse_ball
+        self.draw_radius = self.radius * self.universe.scale_by_mouse_ball
+        self.draw_radius = self.radius
         pg.draw.circle(self.universe.screen, self.color,
-                       self.draw_pos, self.radius)
-        if is_track:
+                       self.draw_pos, self.draw_radius if self.draw_radius > 2 else 2)
+        if is_draw_track:
+            self.draw_track(track_num)
+        pass
+
+    def draw_track(self, track_num=-1):
+        if track_num < 0:
             pg.draw.circle(self.universe.screen, self.color, self.center * self.law.pos_scale + self.universe.center,
                            radius=self.R * self.law.pos_scale, width=1)
-
-        pass
+        else:
+            self.track_list.append(vctr(self.pos))
+            if len(self.track_list) > track_num:
+                self.track_list.remove(self.track_list[0])
+            for p in self.track_list:
+                pg.draw.circle(self.universe.screen, self.color, p * self.universe.law.pos_scale + self.universe.center,
+                               radius=1)
+        # pg.draw.circle(self.universe.screen, self.color, self.center * self.law.pos_scale + self.universe.center,
+        #                radius=self.R * self.law.pos_scale, width=1)
+        # pg.draw.line(self.universe.screen, self.color, self.draw_pos,
+        #              self.velocity / 100 + self.draw_pos
+        #              , width=1)
 
     def draw_infos(self):
         self.universe.draw_text(f'{self.name:10s} position: {self.pos}', self.universe.next_info_pos,
                                 text_color=self.color)
-        self.universe.draw_text(f'{"":10s} velocity: {self.velocity}{vctr(0, 0).angle_to(self.velocity)}',
+        self.universe.draw_text(f'{"":10s} velocity: {self.velocity.length(): .2f} m/s',
+
+                                self.universe.next_info_pos,
+                                text_color=self.color)
+        self.universe.draw_text(f'{"":10s}    cycle: '
+                                f'{math.tau/(self.a.length()/self.velocity.length())/self.universe.law.time_scale: .2f} '
+                                f'{self.universe.time_unit}',
                                 self.universe.next_info_pos,
                                 text_color=self.color)
         self.universe.draw_text(self.name, self.draw_pos + (self.radius, 0),
                                 text_color=self.color)
 
-    @staticmethod
-    def colect_body_density(body):
-        volume = 4 * math.pi * body.radius ** 3 / 3
-        body.density = body.mass / volume
+    @property
+    def density(self):
+        volume = 4 * math.pi * self.radius ** 3 / 3
+        density = self.mass / volume
 
-        return body.density
+        return density
 
     def celect_next_pos_and_v(self):
         F = vctr(0, 0)
@@ -61,7 +85,7 @@ class Body:
         is_c = False
         for otherbody in self.universe.body_list:
             if otherbody != self:
-                f = self.calculate_gravity_2(otherbody)
+                f = self.law.gravity_by_otherbody(self, otherbody)
                 F += f
         """
                 if self.dists_to[otherbody] < self.radius + otherbody.radius:

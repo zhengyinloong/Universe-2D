@@ -10,12 +10,9 @@ import math
 import random
 import sys
 
-import cle
 
-from cle import v_by_2_bodys
 from physical_laws import *
 
 rdm0_1 = random.random
-from universe import *
 
 from settings import *
